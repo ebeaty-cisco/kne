@@ -1,7 +1,7 @@
 
 # LINTDIR is set to pwd by default, which will result in linting the whole repository
 # override from command line to lint parts of repo or concrete files.
-LINTDIR := $$(pwd)
+LINTDIR := $$(pwd)/topo/node/cisco
 .PHONY: super-lint
 super-lint:
 	docker run -e RUN_LOCAL=true -e USE_FIND_ALGORITHM=true \
