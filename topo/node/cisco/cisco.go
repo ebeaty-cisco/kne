@@ -43,10 +43,12 @@ const (
 	ModelXRD = "xrd"
 
 	scrapliPlatformName = "cisco_iosxr"
-	reset8000eCMD       = "copy disk0:/startup-config running-config replace"
+	startupConfigLoc    = "disk0:/startup-config"
+	xrCLI               = "/pkg/bin/xr_cli"
+	reset8000eCMD       = "copy " + startupConfigLoc " running-config replace"
 	// Add the empty echo to work around a bug where the command doesn't end with a newline if there
 	// is no change in config.
-	resetXRdCMD             = "/pkg/bin/xr_cli \"" + reset8000eCMD + "\" ; echo \"\""
+	resetXRdCMD             = xrCLI + " \"" + reset8000eCMD + "\" ; echo \"\""
 	scrapliOperationTimeout = 300 * time.Second
 )
 
@@ -546,7 +548,7 @@ func (n *Node) SpawnCLIConn() error {
 	} else {
 		opts = append(opts, scrapliopts.WithDefaultDesiredPriv("run"))
 		opts = append(opts, scrapliopts.WithNetworkOnOpen(noOp))
-		opts = n.PatchCLIConnOpen("kubectl", []string{"bash", "/pkg/bin/xr_cli", "run"}, opts)
+		opts = n.PatchCLIConnOpen("kubectl", []string{"bash", xrCLI, "run"}, opts)
 	}
 	var err error
 	n.cliConn, err = n.GetCLIConn(scrapliPlatformName, opts)
@@ -577,7 +579,7 @@ func (n *Node) SpawnCLIConnConf() error {
 	}
 	// add options defined in test package
 	opts = append(opts, n.testOpts...)
-	opts = n.PatchCLIConnOpen("kubectl", []string{"bash", "/pkg/bin/xr_cli", "config"}, opts)
+	opts = n.PatchCLIConnOpen("kubectl", []string{"bash", xrCLI, "config"}, opts)
 	var err error
 	n.cliConn, err = n.GetCLIConn(scrapliPlatformName, opts)
 
@@ -609,7 +611,7 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 			return status.Errorf(codes.InvalidArgument, "XR_EVERY_BOOT_CONFIG is not set")
 		}
 		// Send an additional return command to make sure any error messages are read.
-		resp, err := n.cliConn.SendCommands([]string{"cp " + startup_config + " /disk0:/startup-config", ""})
+		resp, err := n.cliConn.SendCommands([]string{"cp " + startup_config + " /" + startupConfigLoc, ""})
 		if err != nil {
 			return err
 		}
