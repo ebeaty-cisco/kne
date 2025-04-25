@@ -525,7 +525,7 @@ func isNode8000eUp(ctx context.Context, req *rest.Request) bool {
 }
 
 // No op function to override default network on open function.
-func no_op(d *scraplinetwork.Driver) error {
+func noOp(d *scraplinetwork.Driver) error {
 	return nil
 }
 
@@ -545,7 +545,7 @@ func (n *Node) SpawnCLIConn() error {
 		opts = n.PatchCLIConnOpen("kubectl", []string{"telnet", "0", "60000"}, opts)
 	} else {
 		opts = append(opts, scrapliopts.WithDefaultDesiredPriv("run"))
-		opts = append(opts, scrapliopts.WithNetworkOnOpen(no_op))
+		opts = append(opts, scrapliopts.WithNetworkOnOpen(noOp))
 		opts = n.PatchCLIConnOpen("kubectl", []string{"bash", "/pkg/bin/xr_cli", "run"}, opts)
 	}
 	var err error
@@ -573,7 +573,7 @@ func (n *Node) SpawnCLIConnConf() error {
 		scrapliopts.WithAuthBypass(),
 		scrapliopts.WithDefaultDesiredPriv("configuration"),
 		scrapliopts.WithTimeoutOps(scrapliOperationTimeout),
-		scrapliopts.WithNetworkOnOpen(no_op),
+		scrapliopts.WithNetworkOnOpen(noOp),
 	}
 	// add options defined in test package
 	opts = append(opts, n.testOpts...)
