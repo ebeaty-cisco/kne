@@ -981,9 +981,9 @@ func TestResetCfg(t *testing.T) {
 		},
 		{
 			// device returns success after applying the startup config
-			desc:    "successful reset for xrd",
-			wantErr: false,
-			ni:      nodeXRD,
+			desc:     "successful reset for xrd",
+			wantErr:  false,
+			ni:       nodeXRD,
 			testFile: "testdata/xrd_reset_config_success",
 		},
 		{

@@ -42,8 +42,8 @@ import (
 const (
 	ModelXRD = "xrd"
 
-	scrapliPlatformName     = "cisco_iosxr"
-	reset8000eCMD           = "copy disk0:/startup-config running-config replace"
+	scrapliPlatformName = "cisco_iosxr"
+	reset8000eCMD       = "copy disk0:/startup-config running-config replace"
 	// Add the empty echo to work around a bug where the command doesn't end with a newline if there
 	// is no change in config.
 	resetXRdCMD             = "/pkg/bin/xr_cli \"" + reset8000eCMD + "\" ; echo \"\""
