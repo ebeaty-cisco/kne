@@ -545,6 +545,10 @@ func (n *Node) SpawnCLIConn() error {
 		opts = n.PatchCLIConnOpen("kubectl", []string{"telnet", "0", "60000"}, opts)
 	} else {
 		opts = append(opts, scrapliopts.WithDefaultDesiredPriv("run"))
+		// Overwrite scrapligo's default network on open function with a no-op function.
+		// Note that the terminal width and length cannot be set from within the run prompt. This is not an issue
+		// as no commands are run that could have an output that pages. Any future change that uses the run CLI
+		// should consider this limitation.
 		opts = append(opts, scrapliopts.WithNetworkOnOpen(noOp))
 		opts = n.PatchCLIConnOpen("kubectl", []string{"bash", "/pkg/bin/xr_cli", "run"}, opts)
 	}
@@ -577,6 +581,9 @@ func (n *Node) SpawnCLIConnConf() error {
 	}
 	// add options defined in test package
 	opts = append(opts, n.testOpts...)
+	// Go straight to the config prompt. Note that the terminal length and width can't be set from within
+	// the config prompt. This is not an issue as no commands are run here or by scrapligo with could have
+	// an output that pages.
 	opts = n.PatchCLIConnOpen("kubectl", []string{"bash", "/pkg/bin/xr_cli", "config"}, opts)
 	var err error
 	n.cliConn, err = n.GetCLIConn(scrapliPlatformName, opts)
@@ -603,7 +610,8 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 
 	var cmd string
 	if n.Proto.Model == ModelXRD {
-		// Copy startup config from mounted location so it can be applied.
+		// Copy startup config from mounted location so it can be applied. This is required since the "copy"
+		// xr_cli command can only access files on disk 0/1.
 		startup_config := n.Proto.Config.Env["XR_EVERY_BOOT_CONFIG"]
 		if startup_config == "" {
 			return status.Errorf(codes.InvalidArgument, "XR_EVERY_BOOT_CONFIG is not set")
