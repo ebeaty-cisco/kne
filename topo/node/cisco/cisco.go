@@ -50,7 +50,8 @@ const (
 	scrapliOperationTimeout = 300 * time.Second
 )
 
-var podIsUpRegex = regexp.MustCompile(`Router up`)
+var podIsUp8000eRegex = regexp.MustCompile(`Router up`)
+var podIsUpXRdRegex = regexp.MustCompile(`Press RETURN to get started.`)
 
 func New(nodeImpl *node.Impl) (node.Node, error) {
 	if nodeImpl == nil {
@@ -490,12 +491,11 @@ func (n *Node) Status(ctx context.Context) (node.Status, error) {
 		return node.StatusFailed, nil
 	case corev1.PodSucceeded, corev1.PodRunning:
 		pb := n.Proto
-		if pb.GetModel() != ModelXRD {
-			req := n.KubeClient.CoreV1().Pods(p[0].Namespace).GetLogs(p[0].Name, &corev1.PodLogOptions{})
-			if !isNode8000eUp(ctx, req) {
-				log.V(2).Infof("Cisco %s node %s status is %v", n.Proto.Model, n.Name(), node.StatusPending)
-				return node.StatusPending, nil
-			}
+		model := pb.GetModel()
+		req := n.KubeClient.CoreV1().Pods(p[0].Namespace).GetLogs(p[0].Name, &corev1.PodLogOptions{})
+		if !isNodeUp(ctx, req, model) {
+			log.V(2).Infof("Cisco %s node %s status is %v", n.Proto.Model, n.Name(), node.StatusPending)
+			return node.StatusPending, nil
 		}
 		for _, cond := range p[0].Status.Conditions {
 			if cond.Type == corev1.PodReady && cond.Status != corev1.ConditionTrue {
@@ -510,7 +510,7 @@ func (n *Node) Status(ctx context.Context) (node.Status, error) {
 	}
 }
 
-func isNode8000eUp(ctx context.Context, req *rest.Request) bool {
+func isNodeUp(ctx context.Context, req *rest.Request, model string ) bool {
 	podLogs, err := req.Stream(ctx)
 	if err != nil {
 		return false
@@ -521,7 +521,11 @@ func isNode8000eUp(ctx context.Context, req *rest.Request) bool {
 	if err != nil || len == 0 {
 		return false
 	}
-	return podIsUpRegex.Match(buf.Bytes())
+	if model == ModelXRD {
+		return podIsUpXRdRegex.Match(buf.Bytes())
+	} else {
+		return podIsUp8000eRegex.Match(buf.Bytes())
+	}
 }
 
 // No op function to override default network on open function.
