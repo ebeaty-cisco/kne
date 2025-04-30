@@ -44,8 +44,8 @@ const (
 
 	scrapliPlatformName = "cisco_iosxr"
 	reset8000eCMD       = "copy disk0:/startup-config running-config replace"
-	// Add the empty echo to work around a bug where the command doesn't end with a newline if there
-	// is no change in config.
+	// Add the empty echo to work around the copy command not outputting a newline at the end if there is no
+	// change in config.
 	resetXRdCMD             = "/pkg/bin/xr_cli \"copy disk0:/startup-config running-config replace\" ; echo \"\""
 	scrapliOperationTimeout = 300 * time.Second
 )
@@ -233,10 +233,10 @@ func constraints(pb *tpb.Node) *tpb.Node {
 		}
 	default:
 		if pb.Constraints["cpu"] == "" {
-			pb.Constraints["cpu"] = "4"
+			pb.Constraints["cpu"] = "1"
 		}
 		if pb.Constraints["memory"] == "" {
-			pb.Constraints["memory"] = "8Gi"
+			pb.Constraints["memory"] = "2Gi"
 		}
 	}
 	return pb

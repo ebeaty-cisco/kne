@@ -209,15 +209,12 @@ func ToEnvVar(kv map[string]string) []corev1.EnvVar {
 func ToResourceRequirements(kv map[string]string) corev1.ResourceRequirements {
 	r := corev1.ResourceRequirements{
 		Requests: map[corev1.ResourceName]resource.Quantity{},
-		Limits: map[corev1.ResourceName]resource.Quantity{},
 	}
 	if v, ok := kv["cpu"]; ok {
 		r.Requests["cpu"] = resource.MustParse(v)
-		r.Limits["cpu"] = resource.MustParse(v)
 	}
 	if v, ok := kv["memory"]; ok {
 		r.Requests["memory"] = resource.MustParse(v)
-		r.Limits["memory"] = resource.MustParse(v)
 	}
 	return r
 }
