@@ -51,7 +51,7 @@ const (
 )
 
 var podIsUp8000eRegex = regexp.MustCompile(`Router up`)
-var podIsUpXRdRegex = regexp.MustCompile(`Press RETURN to get started\.`)
+var podIsUpXRdRegex = regexp.MustCompile(`Press RETURN to get started.`)
 
 func New(nodeImpl *node.Impl) (node.Node, error) {
 	if nodeImpl == nil {
