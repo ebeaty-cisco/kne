@@ -4,7 +4,7 @@ nodes: {
   vendor: CISCO
   model: "xrd"
   config: {
-    image: "us-west1-docker.pkg.dev/gep-kne/cisco/xrd:ga"
+    image: "xrd:latest"
     file: "cisco_xrd.cfg"
   }
   interfaces: {
