@@ -31,7 +31,7 @@ popd
 
 # Deploy a cluster + topo
 pushd "$HOME"
-$cli deploy kne/cloudbuild/vendors/deployment.yaml --report_usage=false
+$cli kne deploy deploy/kne/kind-bridge.yaml --report_usage=false
 $cli create kne/cloudbuild/vendors/topology.textproto --report_usage=false
 popd
 
@@ -40,8 +40,5 @@ pushd "$HOME/kne/cloudbuild"
 go test -v vendors/vendors_test.go \
   -testbed testbed.textproto \
   -topology topology.textproto \
-  -vendor_creds ARISTA/admin/admin \
-  -vendor_creds JUNIPER/root/Google123 \
   -vendor_creds CISCO/cisco/cisco123 \
-  -vendor_creds NOKIA/admin/NokiaSrl1!
 popd
