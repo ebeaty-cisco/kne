@@ -44,6 +44,7 @@ const (
 
 	scrapliPlatformName = "cisco_iosxr"
 	reset8000eCMD       = "copy disk0:/startup-config running-config replace"
+	xrdInterfaceConfig  = "/var/opt/cisco/iosxr/xrd/interface_ip_config.txt"
 	// Add the empty echo to work around the copy command not outputting a newline at the end if there is no
 	// change in config.
 	resetXRdCMD             = "/pkg/bin/xr_cli \"copy disk0:/startup-config running-config replace\" ; echo \"\""
@@ -607,29 +608,6 @@ func endTelnet(d *scraplinetwork.Driver) error {
 	return nil
 }
 
-// Helper function to push a config string.
-func (n *Node) pushConfig(ctx context.Context, cfg string) error {
-	cfgs := processConfig(cfg)
-	log.V(1).Info(cfgs)
-
-	var err error
-	if n.Proto.Model != ModelXRD {
-		err = n.SpawnCLIConn()
-	} else {
-		err = n.SpawnCLIConnConf()
-	}
-	if err != nil {
-		return err
-	}
-	defer n.cliConn.Close()
-
-	resp, err := n.cliConn.SendConfig(cfgs)
-	if err != nil {
-		return err
-	}
-	return resp.Failed
-}
-
 func (n *Node) ResetCfg(ctx context.Context) error {
 	log.Infof("%s resetting config", n.Name())
 	err := n.SpawnCLIConn()
@@ -640,14 +618,16 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 
 	var cmd string
 	if n.Proto.Model == ModelXRD {
-		// Copy startup config from mounted location so it can be applied. This is required since the "copy"
-		// xr_cli command can only access files on disk 0/1.
+		// Copy the snooped management interface config from a know location and the startup config from
+		// the mounted location so it can be applied. This is required to preserve the snooped management
+		// IP addres and since the "copy" xr_cli command can only access files on disk 0/1.
 		startup_config := n.Proto.Config.Env["XR_EVERY_BOOT_CONFIG"]
 		if startup_config == "" {
 			return status.Errorf(codes.InvalidArgument, "XR_EVERY_BOOT_CONFIG is not set")
 		}
 		// Send an additional return command to make sure any error messages are read.
-		resp, err := n.cliConn.SendCommands([]string{"cp " + startup_config + " /disk0:/startup-config", ""})
+		copyCfgCmd := "cat " + xrdInterfaceConfig + " " + startup_config + " > /disk0:/startup-config"
+		resp, err := n.cliConn.SendCommands([]string{copyCfgCmd, ""})
 		if err != nil {
 			return err
 		}
@@ -663,28 +643,10 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if resp.Failed != nil {
-		return resp.Failed
+	if resp.Failed == nil {
+		log.Infof("%s - finished resetting config", n.Name())
 	}
-
-	// For XRd, need to manually reapply the snooped IP address to the management interface.
-	if n.Proto.Model == ModelXRD {
-		// Get the Pod IP address.
-		pod, err := n.KubeClient.CoreV1().Pods(n.Namespace).Get(ctx, n.Proto.Name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		// Must close the existing connection before creating a new one.
-		n.cliConn.Close()
-		cfg := fmt.Sprintf("interface MgmtEth0/RP0/CPU0/0\n ipv4 address %s/16\n!", pod.Status.PodIP)
-		err = n.pushConfig(ctx, cfg)
-		if err != nil {
-			return err
-		}
-	}
-	
-	log.Infof("%s - finished resetting config", n.Name())
-	return nil
+	return resp.Failed
 }
 
 // processConfig removes end command from config
@@ -715,11 +677,28 @@ func (n *Node) ConfigPush(ctx context.Context, r io.Reader) error {
 		return err
 	}
 	cfgs := string(cfg)
-	err = n.pushConfig(ctx, cfgs)
-	if err == nil {
+	cfgs = processConfig(cfgs)
+	log.V(1).Info(cfgs)
+
+	if n.Proto.Model != ModelXRD {
+		err = n.SpawnCLIConn()
+	} else {
+		err = n.SpawnCLIConnConf()
+	}
+	if err != nil {
+		return err
+	}
+	defer n.cliConn.Close()
+
+	resp, err := n.cliConn.SendConfig(cfgs)
+	if err != nil {
+		return err
+	}
+	if resp.Failed == nil {
 		log.Infof("%s - finished config push", n.Impl.Proto.Name)
 	}
-	return err
+
+	return resp.Failed
 }
 
 func (n *Node) GenerateSelfSigned(context.Context) error {
