@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/openconfig/ondatra"
 	kinit "github.com/openconfig/ondatra/knebind/init"
 )
