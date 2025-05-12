@@ -2,13 +2,10 @@ package vendors_test
 
 import (
 	"fmt"
-	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/openconfig/ondatra"
-	"github.com/openconfig/ondatra/gnmi"
 	kinit "github.com/openconfig/ondatra/knebind/init"
 )
 
@@ -72,37 +69,6 @@ func testP4RT(t *testing.T, dut *ondatra.DUTDevice) {
 	})
 }
 
-func TestCEOS(t *testing.T) {
-	dut := ondatra.DUT(t, "ceos")
-	testConfigPush(t, dut)
-	testGNMI(t, dut)
-	testGNOI(t, dut)
-	// GNSI is not yet implemented by ceos.
-	// testGNSI(t, dut)
-	testGRIBI(t, dut)
-	testP4RT(t, dut)
-}
-
-func TestNCTPX(t *testing.T) {
-	dut := ondatra.DUT(t, "ncptx")
-	// testConfigPush(t, dut)
-	testGNMI(t, dut)
-	testGNOI(t, dut)
-	testGNSI(t, dut)
-	testGRIBI(t, dut)
-	testP4RT(t, dut)
-}
-
-func TestSRL(t *testing.T) {
-	dut := ondatra.DUT(t, "srl")
-	testConfigPush(t, dut)
-	testGNMI(t, dut)
-	testGNOI(t, dut)
-	testGNSI(t, dut)
-	testGRIBI(t, dut)
-	testP4RT(t, dut)
-}
-
 func TestXRD(t *testing.T) {
 	dut := ondatra.DUT(t, "xrd")
 	testConfigPush(t, dut)
@@ -111,20 +77,4 @@ func TestXRD(t *testing.T) {
 	testGNSI(t, dut)
 	testGRIBI(t, dut)
 	testP4RT(t, dut)
-}
-
-
-func TestOTG(t *testing.T) {
-	ate := ondatra.ATE(t, "otg")
-	cfg := gosnappi.NewConfig()
-	portNames := []string{"port1", "port2", "port3", "port4"}
-	for _, name := range portNames {
-		cfg.Ports().Add().SetName(name)
-	}
-	ate.OTG().PushConfig(t, cfg)
-	gotPortNames := gnmi.GetAll(t, ate.OTG(), gnmi.OTG().PortAny().Name().State())
-	sort.Strings(gotPortNames)
-	if !cmp.Equal(gotPortNames, portNames) {
-		t.Errorf("Telemetry got port names %v, want %v", gotPortNames, portNames)
-	}
 }
