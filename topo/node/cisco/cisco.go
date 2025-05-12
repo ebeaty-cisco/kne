@@ -674,6 +674,8 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		// Must close the existing connection before creating a new one.
+		n.cliConn.Close()
 		cfg := fmt.Sprintf("interface MgmtEth0/RP0/CPU0/0\n ipv4 address %s/16\n!", pod.Status.PodIP)
 		err = n.pushConfig(ctx, cfg)
 		if err != nil {
