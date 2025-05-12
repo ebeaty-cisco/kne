@@ -641,6 +641,13 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 
 	resp, err := n.cliConn.SendCommand(cmd)
 
+	pod, _ := n.KubeClient.CoreV1().Pods(n.Namespace).Get(n.Proto.Name, metav1.GetOptions{})
+	ip := pod.Status.PodIP
+	cfg = fmt.Sprintf("interface MgmtEth0/RP0/CPU0/0\n ipv4 address %s/16\n!", ip)
+	cfgs = processConfig(cfgs)
+    _ = n.SpawnCLIConnConf()
+	_, _ = n.cliConn.SendConfig(cfgs)
+
 	if err != nil {
 		return err
 	}
