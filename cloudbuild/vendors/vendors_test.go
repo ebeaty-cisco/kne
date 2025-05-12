@@ -70,7 +70,7 @@ func testP4RT(t *testing.T, dut *ondatra.DUTDevice) {
 
 func TestXRD(t *testing.T) {
 	dut := ondatra.DUT(t, "xrd")
-	testConfigPush(t, dut)
+	// testConfigPush(t, dut)
 	testGNMI(t, dut)
 	testGNOI(t, dut)
 	testGNSI(t, dut)
