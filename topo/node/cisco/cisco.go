@@ -713,7 +713,7 @@ func (n *Node) ConfigPush(ctx context.Context, r io.Reader) error {
 		return err
 	}
 	cfgs := string(cfg)
-	err := n.pushConfig(ctx, cfgs)
+	err = n.pushConfig(ctx, cfgs)
 	if err == nil {
 		log.Infof("%s - finished config push", n.Impl.Proto.Name)
 	}
