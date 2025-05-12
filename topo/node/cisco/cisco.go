@@ -610,9 +610,6 @@ func endTelnet(d *scraplinetwork.Driver) error {
 }
 
 func (n *Node) ResetCfg(ctx context.Context) error {
-	if n.Proto.Model == ModelXRD {
-		return status.Errorf(codes.Unimplemented, "reset config is not implemented for cisco xrd node")
-	}
 
 	log.Infof("%s resetting config", n.Name())
 	err := n.SpawnCLIConn()
@@ -674,9 +671,6 @@ func processConfig(cfg string) string {
 }
 
 func (n *Node) ConfigPush(ctx context.Context, r io.Reader) error {
-	if n.Proto.Model == ModelXRD {
-		return status.Errorf(codes.Unimplemented, "config push is not implemented for cisco xrd node")
-	}
 
 	log.Infof("%s - pushing config", n.Name())
 
