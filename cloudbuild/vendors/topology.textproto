@@ -5,7 +5,7 @@ nodes: {
   model: "xrd"
   config: {
     image: "xrd:latest"
-    file: "cisco.cfg"
+    file: "cisco_xrd.cfg"
   }
   interfaces: {
     key: "eth1"
