@@ -681,10 +681,8 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 		}
 	}
 	
-	if resp.Failed == nil {
-		log.Infof("%s - finished resetting config", n.Name())
-	}
-	return resp.Failed
+	log.Infof("%s - finished resetting config", n.Name())
+	return nil
 }
 
 // processConfig removes end command from config
@@ -715,14 +713,11 @@ func (n *Node) ConfigPush(ctx context.Context, r io.Reader) error {
 		return err
 	}
 	cfgs := string(cfg)
-	resp, err := n.pushConfig(ctx, cfgs)
-	if err != nil {
-		return err
-	}
-	if resp.Failed == nil {
+	err := n.pushConfig(ctx, cfgs)
+	if err == nil {
 		log.Infof("%s - finished config push", n.Impl.Proto.Name)
 	}
-	return resp.Failed
+	return err
 }
 
 func (n *Node) GenerateSelfSigned(context.Context) error {
