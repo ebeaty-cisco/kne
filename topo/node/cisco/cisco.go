@@ -607,6 +607,28 @@ func endTelnet(d *scraplinetwork.Driver) error {
 	return nil
 }
 
+// Helper function to push a config string.
+func (n *Node) pushConfig(ctx context.Context, cfg string) error {
+	cfgs := processConfig(cfg)
+	log.V(1).Info(cfgs)
+
+	if n.Proto.Model != ModelXRD {
+		err = n.SpawnCLIConn()
+	} else {
+		err = n.SpawnCLIConnConf()
+	}
+	if err != nil {
+		return err
+	}
+	defer n.cliConn.Close()
+
+	resp, err := n.cliConn.SendConfig(cfgs)
+	if err != nil {
+		return err
+	}
+	return resp.Failed
+}
+
 func (n *Node) ResetCfg(ctx context.Context) error {
 	log.Infof("%s resetting config", n.Name())
 	err := n.SpawnCLIConn()
@@ -640,6 +662,24 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if resp.Failed != nil {
+		return resp.Failed
+	}
+
+	// For XRd, need to manually reapply the snooped IP address to the management interface.
+	if n.Proto.Model == ModelXRD {
+		// Get the Pod IP address.
+		pod, err := n.KubeClient.CoreV1().Pods(n.Namespace).Get(ctx, n.Proto.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		cfg := fmt.Sprintf("interface MgmtEth0/RP0/CPU0/0\n ipv4 address %s/16\n!", pod.Status.PodIP)
+		resp, err := n.pushConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+	}
+	
 	if resp.Failed == nil {
 		log.Infof("%s - finished resetting config", n.Name())
 	}
@@ -674,27 +714,13 @@ func (n *Node) ConfigPush(ctx context.Context, r io.Reader) error {
 		return err
 	}
 	cfgs := string(cfg)
-	cfgs = processConfig(cfgs)
-	log.V(1).Info(cfgs)
-
-	if n.Proto.Model != ModelXRD {
-		err = n.SpawnCLIConn()
-	} else {
-		err = n.SpawnCLIConnConf()
-	}
-	if err != nil {
-		return err
-	}
-	defer n.cliConn.Close()
-
-	resp, err := n.cliConn.SendConfig(cfgs)
+	resp, err := n.pushConfig(ctx, cfgs)
 	if err != nil {
 		return err
 	}
 	if resp.Failed == nil {
 		log.Infof("%s - finished config push", n.Impl.Proto.Name)
 	}
-
 	return resp.Failed
 }
 
