@@ -107,9 +107,9 @@ func (n *Node) Create(ctx context.Context) error {
 			Capabilities: &corev1.Capabilities{
 				Add: []corev1.Capability{"SYS_ADMIN"},
 			},
-			tty = true
-			stdin = true
 		}
+		tty = true
+		stdin = true
 	}
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
