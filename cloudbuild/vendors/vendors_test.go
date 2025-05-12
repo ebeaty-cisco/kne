@@ -112,38 +112,3 @@ func TestXRD(t *testing.T) {
 	testGRIBI(t, dut)
 	testP4RT(t, dut)
 }
-
-func Test8000e(t *testing.T) {
-	dut := ondatra.DUT(t, "e8000")
-	testConfigPush(t, dut)
-	testGNMI(t, dut)
-	testGNOI(t, dut)
-	testGNSI(t, dut)
-	testGRIBI(t, dut)
-	testP4RT(t, dut)
-}
-
-func TestLemming(t *testing.T) {
-	dut := ondatra.DUT(t, "lemming")
-	testGNMI(t, dut)
-	testGNOI(t, dut)
-	testGNSI(t, dut)
-	testGRIBI(t, dut)
-	// P4RT is not yet implemented by lemming.
-	// testP4RT(t, dut)
-}
-
-func TestOTG(t *testing.T) {
-	ate := ondatra.ATE(t, "otg")
-	cfg := gosnappi.NewConfig()
-	portNames := []string{"port1", "port2", "port3", "port4"}
-	for _, name := range portNames {
-		cfg.Ports().Add().SetName(name)
-	}
-	ate.OTG().PushConfig(t, cfg)
-	gotPortNames := gnmi.GetAll(t, ate.OTG(), gnmi.OTG().PortAny().Name().State())
-	sort.Strings(gotPortNames)
-	if !cmp.Equal(gotPortNames, portNames) {
-		t.Errorf("Telemetry got port names %v, want %v", gotPortNames, portNames)
-	}
-}

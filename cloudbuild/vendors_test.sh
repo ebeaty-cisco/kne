@@ -31,17 +31,14 @@ popd
 
 # Deploy a cluster + topo
 pushd "$HOME"
-$cli deploy kne/cloudbuild/vendors/deployment.yaml --report_usage=false
-$cli create kne/cloudbuild/vendors/topology.textproto --report_usage=false
+kne deploy deploy/kne/kind-bridge.yaml --report_usage=false
+kne create cloudbuild/vendors/topology.textproto --report_usage=false
 popd
 
 # Run an ondatra test
 pushd "$HOME/kne/cloudbuild"
-go test -v vendors/vendors_test.go \
+go test -v cloudbuild/vendors/vendors_test.go \
   -testbed testbed.textproto \
   -topology topology.textproto \
-  -vendor_creds ARISTA/admin/admin \
-  -vendor_creds JUNIPER/root/Google123 \
-  -vendor_creds CISCO/cisco/cisco123 \
-  -vendor_creds NOKIA/admin/NokiaSrl1!
+  -vendor_creds CISCO/cisco/cisco123
 popd
