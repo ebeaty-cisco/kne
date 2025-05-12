@@ -612,10 +612,11 @@ func (n *Node) pushConfig(ctx context.Context, cfg string) error {
 	cfgs := processConfig(cfg)
 	log.V(1).Info(cfgs)
 
+	var err error
 	if n.Proto.Model != ModelXRD {
-		err := n.SpawnCLIConn()
+		err = n.SpawnCLIConn()
 	} else {
-		err := n.SpawnCLIConnConf()
+		err = n.SpawnCLIConnConf()
 	}
 	if err != nil {
 		return err
@@ -674,7 +675,7 @@ func (n *Node) ResetCfg(ctx context.Context) error {
 			return err
 		}
 		cfg := fmt.Sprintf("interface MgmtEth0/RP0/CPU0/0\n ipv4 address %s/16\n!", pod.Status.PodIP)
-		resp, err = n.pushConfig(ctx, cfg)
+		err = n.pushConfig(ctx, cfg)
 		if err != nil {
 			return err
 		}
